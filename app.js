@@ -6,35 +6,70 @@ const formEl = document.querySelector('#form');
 
 let errorChecked = false;
 // Check required fieds
-function checkRequired(fieldArray) {
-  fieldArray.forEach((input) => {
-    input.value == ''
-      ? state(input, 'error', 'cannot be empty')
-      : state(input, 'success');
+function checkRequired(inputEL) {
+  inputEL.forEach((el) => {
+    if (el.value === '') {
+      showError(el, 'This field cannot be empty');
+    } else {
+      showSuccess(el);
+    }
   });
 }
 
-// Success/Error funtion
-function state(input, type, message = 1) {
-  if (type == 'success') {
-    input.className = type;
-  } else {
-    const el = document.createElement('small');
-    input.className = type;
-    const fieldName = input.previousElementSibling.textContent;
-    el.innerText = `${fieldName} ${message}`;
-    input.insertAdjacentElement('afterend', el);
-    //   Remove Error message after a given time
-    // setTimeout(() => {
-    //   const message = input.nextElementSibling;
-    //   message.remove();
-    // }, 3000);
-    errorChecked = true;
-  }
+// Error function
+function showError(el, message) {
+  const smallEl = document.createElement('small');
+  smallEl.textContent = message;
+  el.classList.add('error');
+  const error = el.nextElementSibling;
+  if (error) error.remove();
+  el.insertAdjacentElement('afterend', smallEl);
+  errorChecked = true;
+}
+
+// Success function
+function showSuccess(el) {
+  const error = el.nextElementSibling;
+  if (error) error.remove();
+  el.classList.add('success');
+  errorChecked = false;
+}
+
+// Check input value length
+function checkLength(input, min, max) {
+  input.forEach((input) => {
+    if (input.value.length < min && !errorChecked) {
+      showError(
+        input,
+        `The ${getFieldName(input)} must be atleast ${min} characters`
+      );
+    } else if (input.value.length > max && !errorChecked) {
+      showError(
+        input,
+        `The ${getFieldName(input)} must be atmost ${max} characters`
+      );
+    }
+  });
+}
+
+// Get field name
+function getFieldName(field) {
+  const fieldName = field.previousElementSibling.textContent;
+  return fieldName;
+}
+
+// Chect mail
+function validateEmail(input) {
+  const regex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/g;
+  return regex.test(String(input.value.toLowerCase()));
 }
 
 // Check input length
 function formSubmit(e) {
   e.preventDefault();
-  if (!errorChecked) checkRequired([firstName, lastName, email, message]);
+  checkRequired([firstName, lastName, email, message]);
+  checkLength([firstName, lastName], 3, 15);
 }
+
+// Event listeners
+formEl.addEventListener('submit', formSubmit);
